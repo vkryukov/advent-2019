@@ -9,7 +9,10 @@ class Intcode:
     MUL = 2
     READ = 3
     WRITE = 4
-
+    JUMP_IF_TRUE = 5
+    JUMP_IF_FALSE = 6
+    LESS = 7
+    EQUALS = 8
 
     def __init__(self, program):
         self._program = program[:]
@@ -27,9 +30,9 @@ class Intcode:
 
     def values(self, counter, count, modes):
         """Given the memory counter and params, return COUNT values according"""
-        return [(self._memory[self._memory[counter+i+1]]
+        return [(self._memory[self._memory[counter + i + 1]]
                  if (i >= len(modes) or modes[i] == 0)
-                 else self._memory[counter+i+1])
+                 else self._memory[counter + i + 1])
                 for i in range(count)]
 
     def run(self, input: Optional[list] = None, /, memory_reset=True) -> list:
@@ -49,14 +52,32 @@ class Intcode:
                 self._memory[self._memory[counter + 3]] = x * y
                 counter += 4
             elif op == Intcode.READ:
-                # x, = self.values(counter, 1, modes)
-                # self._memory[x] = input.pop(0)
                 self._memory[self._memory[counter + 1]] = input.pop(0)
                 counter += 2
             elif op == Intcode.WRITE:
                 x, = self.values(counter, 1, modes)
                 output.append(x)
                 counter += 2
+            elif op == Intcode.JUMP_IF_TRUE:
+                x, y = self.values(counter, 2, modes)
+                if x != 0:
+                    counter = y
+                else:
+                    counter += 3
+            elif op == Intcode.JUMP_IF_FALSE:
+                x, y = self.values(counter, 2, modes)
+                if x == 0:
+                    counter = y
+                else:
+                    counter += 3
+            elif op == Intcode.LESS:
+                x, y = self.values(counter, 2, modes)
+                self._memory[self._memory[counter + 3]] = (1 if x < y else 0)
+                counter += 4
+            elif op == Intcode.EQUALS:
+                x, y = self.values(counter, 2, modes)
+                self._memory[self._memory[counter + 3]] = (1 if x == y else 0)
+                counter += 4
             else:
                 raise ValueError(f'Unexpected code {self._memory[counter]} at position {counter}.\n{self._memory=}')
         return output
@@ -108,6 +129,41 @@ def test_day5_program():
     comp = Intcode(read_integers('inputs/day5.txt'))
     diagnostic = comp.run([1])
     assert diagnostic == [0, 0, 0, 0, 0, 0, 0, 0, 0, 13787043]
+
+
+def test_comparisons():
+    assert Intcode([3, 9, 8, 9, 10, 9, 4, 9, 99, -1, 8]).run([8]) == [1]
+    assert Intcode([3, 9, 8, 9, 10, 9, 4, 9, 99, -1, 8]).run([7]) == [0]
+
+    assert Intcode([3, 9, 7, 9, 10, 9, 4, 9, 99, -1, 8]).run([6]) == [1]
+    assert Intcode([3, 9, 7, 9, 10, 9, 4, 9, 99, -1, 8]).run([8]) == [0]
+    assert Intcode([3, 9, 7, 9, 10, 9, 4, 9, 99, -1, 8]).run([10]) == [0]
+
+    assert Intcode([3, 3, 1108, -1, 8, 3, 4, 3, 99]).run([8]) == [1]
+    assert Intcode([3, 3, 1108, -1, 8, 3, 4, 3, 99]).run([7]) == [0]
+
+    assert Intcode([3, 3, 1107, -1, 8, 3, 4, 3, 99]).run([6]) == [1]
+    assert Intcode([3, 3, 1107, -1, 8, 3, 4, 3, 99]).run([8]) == [0]
+    assert Intcode([3, 3, 1107, -1, 8, 3, 4, 3, 99]).run([10]) == [0]
+
+
+def test_jumps():
+    assert Intcode([3, 12, 6, 12, 15, 1, 13, 14, 13, 4, 13, 99, -1, 0, 1, 9]).run([0]) == [0]
+    assert Intcode([3, 12, 6, 12, 15, 1, 13, 14, 13, 4, 13, 99, -1, 0, 1, 9]).run([1]) == [1]
+    assert Intcode([3, 12, 6, 12, 15, 1, 13, 14, 13, 4, 13, 99, -1, 0, 1, 9]).run([-2]) == [1]
+
+    assert Intcode([3, 3, 1105, -1, 9, 1101, 0, 0, 12, 4, 12, 99, 1]).run([0]) == [0]
+    assert Intcode([3, 3, 1105, -1, 9, 1101, 0, 0, 12, 4, 12, 99, 1]).run([42]) == [1]
+    assert Intcode([3, 3, 1105, -1, 9, 1101, 0, 0, 12, 4, 12, 99, 1]).run([-57]) == [1]
+
+
+def test_large_example():
+    comp = Intcode([3, 21, 1008, 21, 8, 20, 1005, 20, 22, 107, 8, 21, 20, 1006, 20, 31,
+                    1106, 0, 36, 98, 0, 0, 1002, 21, 125, 20, 4, 20, 1105, 1, 46, 104,
+                    999, 1105, 1, 46, 1101, 1000, 1, 20, 4, 20, 1105, 1, 46, 98, 99])
+    assert comp.run([-42]) == [999]
+    assert comp.run([8]) == [1000]
+    assert comp.run([57]) == [1001]
 
 
 if __name__ == '__main__':
