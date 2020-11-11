@@ -166,5 +166,7 @@ def test_large_example():
     assert comp.run([57]) == [1001]
 
 
-if __name__ == '__main__':
-    main()
+def test_diagnostic2():
+    comp = Intcode(read_integers('inputs/day5.txt'))
+    diagnostic = comp.run([5])
+    assert diagnostic == [3892695]
