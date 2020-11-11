@@ -150,6 +150,5 @@ def main():
     print(f'{x=}, {dist=}')
 
 
-
 if __name__ == '__main__':
     main()
