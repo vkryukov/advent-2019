@@ -4,11 +4,12 @@ from typing import Optional
 class Intcode:
     """Represents an Intcode computer"""
 
-    EXIT_CODE = 99
-    ADD_CODE = 1
-    MUL_CODE = 2
-    READ_INPUT_CODE = 3
-    WRITE_OUTPUT_CODE = 4
+    EXIT = 99
+    ADD = 1
+    MUL = 2
+    READ = 3
+    WRITE = 4
+
 
     def __init__(self, program):
         self._program = program[:]
@@ -37,22 +38,22 @@ class Intcode:
         if memory_reset:
             self._memory = self._program[:]
         counter = 0
-        while self._memory[counter] != Intcode.EXIT_CODE:
+        while self._memory[counter] != Intcode.EXIT:
             op, modes = Intcode.op_and_params(self._memory[counter])
-            if op == Intcode.ADD_CODE:
+            if op == Intcode.ADD:
                 x, y = self.values(counter, 2, modes)
                 self._memory[self._memory[counter + 3]] = x + y
                 counter += 4
-            elif op == Intcode.MUL_CODE:
+            elif op == Intcode.MUL:
                 x, y = self.values(counter, 2, modes)
                 self._memory[self._memory[counter + 3]] = x * y
                 counter += 4
-            elif op == Intcode.READ_INPUT_CODE:
+            elif op == Intcode.READ:
                 # x, = self.values(counter, 1, modes)
                 # self._memory[x] = input.pop(0)
                 self._memory[self._memory[counter + 1]] = input.pop(0)
                 counter += 2
-            elif op == Intcode.WRITE_OUTPUT_CODE:
+            elif op == Intcode.WRITE:
                 x, = self.values(counter, 1, modes)
                 output.append(x)
                 counter += 2
