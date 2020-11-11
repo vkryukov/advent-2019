@@ -12,18 +12,42 @@ class Intcode:
         self._program = program
         self._memory = program[:]
 
+    @staticmethod
+    def op_and_params(instruction):
+        op = instruction % 100
+        modes = []
+        instruction //= 100
+        while instruction > 0:
+            modes.append(instruction % 10)
+            instruction //= 10
+        return op, modes
+
+    def values(self, counter, count, modes):
+        """Given the memory counter and params, return COUNT values according"""
+        return [self._memory[self._memory[counter+i]]
+                if (i >= len(modes) or modes[i] == 0)
+                else self._memory[counter+i]
+                for i in range(1, count+1)]
+
     def run(self, input: Optional[list] = None) -> list:
         """Runs Intcode on a given input, producing given output."""
+        output = []
+        input_counter = 0
         self._memory = self._program[:]
         counter = 0
         while self._memory[counter] != Intcode.EXIT_CODE:
-            if self._memory[counter] == Intcode.ADD_CODE:
-                self._memory[self._memory[counter + 3]] = self._memory[self._memory[counter + 1]] + self._memory[self._memory[counter + 2]]
-            elif self._memory[counter] == Intcode.MUL_CODE:
-                self._memory[self._memory[counter + 3]] = self._memory[self._memory[counter + 1]] * self._memory[self._memory[counter + 2]]
+            op, modes = Intcode.op_and_params(self._memory[counter])
+            if op == Intcode.ADD_CODE:
+                x, y = self.values(counter, 2, modes)
+                self._memory[self._memory[counter + 3]] = x + y
+                counter += 4
+            elif op == Intcode.MUL_CODE:
+                x, y = self.values(counter, 2, modes)
+                self._memory[self._memory[counter + 3]] = x * y
+                counter += 4
             else:
                 raise ValueError(f'Unexpected code {self._memory[counter]} at position {counter}.\n{self._memory=}')
-            counter += 4
+        return output
 
     @property
     def memory(self):
