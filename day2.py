@@ -39,7 +39,7 @@ def run_program(prog, noun, verb):
     return intcode(prog)[0]
 
 
-PROG = [int(x) for x in open('day2.txt').read().split(',')]
+PROG = [int(x) for x in open('inputs/day2.txt').read().split(',')]
 
 
 def test_run_program():

@@ -14,7 +14,7 @@ def test_fuel_required():
 
 def solve(fn):
     mass = 0
-    for line in open('./input1.txt').readlines():
+    for line in open('inputs/day1.txt').readlines():
         mass += fn(int(line))
     print(f"{mass=}")
 

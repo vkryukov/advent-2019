@@ -143,7 +143,7 @@ def test_intersection_distance():
 
 
 def main():
-    lines = open('day3.txt').readlines()
+    lines = open('inputs/day3.txt').readlines()
     moves1 = Point.moves(lines[0])
     moves2 = Point.moves(lines[1])
     x, dist = intersection_distance(lines[0], lines[1])
