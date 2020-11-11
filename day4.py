@@ -1,6 +1,10 @@
 def how_many_passwords():
     return sum(
-        a == b or b == c or c == d or d == e or e == f
+        (a == b and b != c) or
+        (a != b and b == c and c != d) or
+        (b != c and c == d and d != e) or
+        (c != d and d == e and e != f) or
+        (d != e and e == f)
         for a in range(1, 10)
         for b in range(a, 10)
         for c in range(b, 10)
