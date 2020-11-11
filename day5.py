@@ -26,16 +26,16 @@ class Intcode:
 
     def values(self, counter, count, modes):
         """Given the memory counter and params, return COUNT values according"""
-        return [self._memory[self._memory[counter+i+1]]
-                if (i >= len(modes) or modes[i] == 0)
-                else self._memory[counter+i+1]
+        return [(self._memory[self._memory[counter+i+1]]
+                 if (i >= len(modes) or modes[i] == 0)
+                 else self._memory[counter+i+1])
                 for i in range(count)]
 
-    def run(self, input: Optional[list] = None) -> list:
+    def run(self, input: Optional[list] = None, /, memory_reset=True) -> list:
         """Runs Intcode on a given input, producing given output."""
         output = []
-        input_counter = 0
-        self._memory = self._program[:]
+        if memory_reset:
+            self._memory = self._program[:]
         counter = 0
         while self._memory[counter] != Intcode.EXIT_CODE:
             op, modes = Intcode.op_and_params(self._memory[counter])
@@ -48,13 +48,14 @@ class Intcode:
                 self._memory[self._memory[counter + 3]] = x * y
                 counter += 4
             elif op == Intcode.READ_INPUT_CODE:
-                x, = self.values(counter, 1, modes)
-                self._memory[x] = input[input_counter]
-                input_counter += 1
+                # x, = self.values(counter, 1, modes)
+                # self._memory[x] = input.pop(0)
+                self._memory[self._memory[counter + 1]] = input.pop(0)
                 counter += 2
             elif op == Intcode.WRITE_OUTPUT_CODE:
                 x, = self.values(counter, 1, modes)
-                output.append(self._memory[x])
+                output.append(x)
+                counter += 2
             else:
                 raise ValueError(f'Unexpected code {self._memory[counter]} at position {counter}.\n{self._memory=}')
         return output
@@ -90,3 +91,23 @@ def test_another_simple_program():
     comp = Intcode([1101, 100, -1, 4, 0])
     comp.run()
     assert comp.memory == [1101, 100, -1, 4, 99]
+
+
+def test_read_input():
+    comp = Intcode([103, 9, 103, 10, 2, 9, 10, 8, 0, 0, 0])
+    comp.run([33, 3])
+    assert comp.memory == [103, 9, 103, 10, 2, 9, 10, 8, 99, 33, 3]
+
+
+def read_integers(filename):
+    return [int(x) for x in open(filename).read().split(',')]
+
+
+def test_day5_program():
+    comp = Intcode(read_integers('inputs/day5.txt'))
+    diagnostic = comp.run([1])
+    assert diagnostic == [0, 0, 0, 0, 0, 0, 0, 0, 0, 13787043]
+
+
+if __name__ == '__main__':
+    main()
