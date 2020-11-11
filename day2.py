@@ -21,7 +21,7 @@ def test_part2():
     assert run_program(23, 47) == 19690720
 
 
-def main():
+def find_part_2():
     for noun in range(100):
         for verb in range(100):
             if run_program(noun, verb) == 19690720:
@@ -30,4 +30,4 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    find_part_2()
