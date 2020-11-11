@@ -4,7 +4,6 @@ ADD_CODE = 1
 MUL_CODE = 2
 
 def intcode(prog: list) -> list:
-    prog = prog[:]
     counter = 0
     while prog[counter] != EXIT_CODE:
         if prog[counter] == ADD_CODE:
@@ -33,13 +32,27 @@ def test_intcode():
         assert intcode(start_program) == end_program
 
 
+def run_program(prog, noun, verb):
+    prog = prog[:]
+    prog[1] = noun
+    prog[2] = verb
+    return intcode(prog)[0]
+
+
+PROG = [int(x) for x in open('day2.txt').read().split(',')]
+
+
+def test_run_program():
+    assert run_program(PROG, 12, 2) == 10566835
+
+
 def main():
-    prog = [int(x) for x in open('day2.txt').read().split(',')]
-    prog[1] = 12
-    prog[2] = 2
-    print(intcode(prog)[0])
+    for noun in range(100):
+        for verb in range(100):
+            if run_program(PROG, noun, verb) == 19690720:
+                print(100 * noun + verb)
+                return
 
 
 if __name__ == '__main__':
     main()
-
