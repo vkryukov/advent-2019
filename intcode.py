@@ -94,6 +94,9 @@ class Intcode:
             output.append(o)
         return output
 
+    def append_input(self, x):
+        self._input.append(x)
+
     @property
     def memory(self):
         """Return the state of the memory after the run."""
