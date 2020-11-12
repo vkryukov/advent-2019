@@ -20,7 +20,7 @@ class Intcode:
 
     def __init__(self, program):
         self._program = program[:]
-        self._memory = program[:]
+        self._memory = self._input = None
 
     @staticmethod
     def op_and_params(instruction):
@@ -39,51 +39,59 @@ class Intcode:
                  else self._memory[counter + i + 1])
                 for i in range(count)]
 
-    def run(self, input: Optional[list] = None, /, memory_reset=True) -> list:
+    def reset(self):
+        self._memory = self._program[:]
+        self.pos = 0
+
+    def run_until_output(self) -> Optional[int]:
         """Runs Intcode on a given input, producing given output."""
-        output = []
-        if memory_reset:
-            self._memory = self._program[:]
-        counter = 0
-        while self._memory[counter] != Intcode.EXIT:
-            op, modes = Intcode.op_and_params(self._memory[counter])
+        while self._memory[self.pos] != Intcode.EXIT:
+            op, modes = Intcode.op_and_params(self._memory[self.pos])
             if op == Intcode.ADD:
-                x, y = self.values(counter, 2, modes)
-                self._memory[self._memory[counter + 3]] = x + y
-                counter += 4
+                x, y = self.values(self.pos, 2, modes)
+                self._memory[self._memory[self.pos + 3]] = x + y
+                self.pos += 4
             elif op == Intcode.MUL:
-                x, y = self.values(counter, 2, modes)
-                self._memory[self._memory[counter + 3]] = x * y
-                counter += 4
+                x, y = self.values(self.pos, 2, modes)
+                self._memory[self._memory[self.pos + 3]] = x * y
+                self.pos += 4
             elif op == Intcode.READ:
-                self._memory[self._memory[counter + 1]] = input.pop(0)
-                counter += 2
+                self._memory[self._memory[self.pos + 1]] = self._input.pop(0)
+                self.pos += 2
             elif op == Intcode.WRITE:
-                x, = self.values(counter, 1, modes)
-                output.append(x)
-                counter += 2
+                x, = self.values(self.pos, 1, modes)
+                self.pos += 2
+                return x
             elif op == Intcode.JUMP_IF_TRUE:
-                x, y = self.values(counter, 2, modes)
+                x, y = self.values(self.pos, 2, modes)
                 if x != 0:
-                    counter = y
+                    self.pos = y
                 else:
-                    counter += 3
+                    self.pos += 3
             elif op == Intcode.JUMP_IF_FALSE:
-                x, y = self.values(counter, 2, modes)
+                x, y = self.values(self.pos, 2, modes)
                 if x == 0:
-                    counter = y
+                    self.pos = y
                 else:
-                    counter += 3
+                    self.pos += 3
             elif op == Intcode.LESS:
-                x, y = self.values(counter, 2, modes)
-                self._memory[self._memory[counter + 3]] = (1 if x < y else 0)
-                counter += 4
+                x, y = self.values(self.pos, 2, modes)
+                self._memory[self._memory[self.pos + 3]] = (1 if x < y else 0)
+                self.pos += 4
             elif op == Intcode.EQUALS:
-                x, y = self.values(counter, 2, modes)
-                self._memory[self._memory[counter + 3]] = (1 if x == y else 0)
-                counter += 4
+                x, y = self.values(self.pos, 2, modes)
+                self._memory[self._memory[self.pos + 3]] = (1 if x == y else 0)
+                self.pos += 4
             else:
-                raise ValueError(f'Unexpected code {self._memory[counter]} at position {counter}.\n{self._memory=}')
+                raise ValueError(f'Unexpected code {self._memory[self.pos]} at position {self.pos}.\n{self._memory=}')
+        return None
+
+    def run(self, inp: Optional[list] = None) -> list:
+        self.reset()
+        self._input = inp[:] if inp else []
+        output = []
+        while (o := self.run_until_output()) is not None:
+            output.append(o)
         return output
 
     @property
