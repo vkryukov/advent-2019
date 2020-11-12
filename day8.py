@@ -1,3 +1,6 @@
+from utils import read_digits
+
+
 class Layer:
     def __init__(self, data: list, wide: int, tall: int):
         self._data = [[data[t * wide + w] for w in range(wide)] for t in range(tall)]
@@ -7,6 +10,9 @@ class Layer:
     def __getitem__(self, key):
         i, j = key
         return self._data[i][j]
+
+    def count(self, x):
+        return sum(line.count(x) for line in self._data)
 
 
 class Image:
@@ -38,3 +44,9 @@ def test_image():
     assert img.layers[0]._data[1] == [4, 5, 6]
     assert img.layers[1]._data[0] == [7, 8, 9]
     assert img.layers[1]._data[1] == [0, 1, 2]
+
+
+def test_part1():
+    img = Image(read_digits('inputs/day8.txt'), (25, 6))
+    fewest = min([(x.count(0), x.count(1), x.count(2)) for x in img.layers], key=lambda x: x[0])
+    assert fewest[1]*fewest[2] == 1584
