@@ -20,22 +20,22 @@ def test_intcode_basic_program():
     ]:
         comp = Intcode(start_program)
         comp.run()
-        assert comp.memory == end_program
+        assert comp.memory[:len(end_program)] == end_program
 
 
 def test_another_simple_program():
     comp = Intcode([1002, 4, 3, 4, 33])
     comp.run()
-    assert comp.memory == [1002, 4, 3, 4, 99]
+    assert comp.memory[:5] == [1002, 4, 3, 4, 99]
     comp = Intcode([1101, 100, -1, 4, 0])
     comp.run()
-    assert comp.memory == [1101, 100, -1, 4, 99]
+    assert comp.memory[:5] == [1101, 100, -1, 4, 99]
 
 
 def test_read_input():
     comp = Intcode([103, 9, 103, 10, 2, 9, 10, 8, 0, 0, 0])
     comp.run([33, 3])
-    assert comp.memory == [103, 9, 103, 10, 2, 9, 10, 8, 99, 33, 3]
+    assert comp.memory[:11] == [103, 9, 103, 10, 2, 9, 10, 8, 99, 33, 3]
 
 
 def test_comparisons():

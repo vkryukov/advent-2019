@@ -5,6 +5,9 @@ Implementation of Intcode computer.
 from typing import Optional
 
 
+MEMORY_SIZE = 1_000_000
+
+
 class Intcode:
     """Represents an Intcode computer"""
 
@@ -17,10 +20,12 @@ class Intcode:
     JUMP_IF_FALSE = 6
     LESS = 7
     EQUALS = 8
+    ADJUST_REL_BASE = 9
 
     def __init__(self, program):
         self._program = program[:]
-        self._memory = self._input = self.pos = None
+        self._memory = [0] * MEMORY_SIZE
+        self._input = self.pos = self.relative_base = None
 
     @staticmethod
     def op_and_params(instruction):
@@ -34,15 +39,24 @@ class Intcode:
 
     def values(self, count, modes):
         """Given the memory counter and params, return COUNT values according"""
-        return [(self._memory[self._memory[self.pos + i + 1]]
-                 if (i >= len(modes) or modes[i] == 0)
-                 else self._memory[self.pos + i + 1])
-                for i in range(count)]
+        values = []
+        for i in range(count):
+            if i >= len(modes) or modes[i] == 0:
+                values.append(self._memory[self._memory[self.pos + i + 1]])
+            elif modes[i] == 1:
+                values.append(self._memory[self.pos + i + 1])
+            elif modes[i] == 2:
+                values.append(self._memory[self._memory[self.pos + i + 1] + self.relative_base])
+            else:
+                raise ValueError
+        return values
 
     def reset(self, inp: Optional[list] = None):
-        self._memory = self._program[:]
+        for i in range(len(self._program)):
+            self._memory[i] = self._program[i]
         self._input = inp[:] if inp else []
         self.pos = 0
+        self.relative_base = 0
 
     def run_until_output(self) -> Optional[int]:
         """Runs Intcode on a given input, producing given output."""
@@ -83,6 +97,10 @@ class Intcode:
                 x, y = self.values(2, modes)
                 self._memory[self._memory[self.pos + 3]] = (1 if x == y else 0)
                 self.pos += 4
+            elif op == Intcode.ADJUST_REL_BASE:
+                x, = self.values(1, modes)
+                self.relative_base += x
+                self.pos += 2
             else:
                 raise ValueError(f'Unexpected code {self._memory[self.pos]} at position {self.pos}.\n{self._memory=}')
         return None
@@ -101,5 +119,3 @@ class Intcode:
     def memory(self):
         """Return the state of the memory after the run."""
         return self._memory
-
-
