@@ -13,3 +13,7 @@ def test_relative_mode():
 
 def test_part1():
     assert Intcode(read_integers('inputs/day9.txt')).run([1]) == [2682107844]
+
+
+def test_part2():
+    assert Intcode(read_integers('inputs/day9.txt')).run([2]) == [34738]
