@@ -63,15 +63,18 @@ class Intcode:
         while self._memory[self.pos] != Intcode.EXIT:
             op, modes = Intcode.op_and_params(self._memory[self.pos])
             if op == Intcode.ADD:
+                relative = self.relative_base if len(modes) == 3 and modes[2] == 2 else 0
                 x, y = self.values(2, modes)
-                self._memory[self._memory[self.pos + 3]] = x + y
+                self._memory[self._memory[self.pos + 3] + relative] = x + y
                 self.pos += 4
             elif op == Intcode.MUL:
+                relative = self.relative_base if len(modes) == 3 and modes[2] == 2 else 0
                 x, y = self.values(2, modes)
-                self._memory[self._memory[self.pos + 3]] = x * y
+                self._memory[self._memory[self.pos + 3] + relative] = x * y
                 self.pos += 4
             elif op == Intcode.READ:
-                self._memory[self._memory[self.pos + 1]] = self._input.pop(0)
+                relative = self.relative_base if modes and modes[0] == 2 else 0
+                self._memory[self._memory[self.pos + 1] + relative] = self._input.pop(0)
                 self.pos += 2
             elif op == Intcode.WRITE:
                 x, = self.values(1, modes)
@@ -91,11 +94,13 @@ class Intcode:
                     self.pos += 3
             elif op == Intcode.LESS:
                 x, y = self.values(2, modes)
-                self._memory[self._memory[self.pos + 3]] = (1 if x < y else 0)
+                relative = self.relative_base if len(modes) == 3 and modes[2] == 2 else 0
+                self._memory[self._memory[self.pos + 3] + relative] = (1 if x < y else 0)
                 self.pos += 4
             elif op == Intcode.EQUALS:
                 x, y = self.values(2, modes)
-                self._memory[self._memory[self.pos + 3]] = (1 if x == y else 0)
+                relative = self.relative_base if len(modes) == 3 and modes[2] == 2 else 0
+                self._memory[self._memory[self.pos + 3] + relative] = (1 if x == y else 0)
                 self.pos += 4
             elif op == Intcode.ADJUST_REL_BASE:
                 x, = self.values(1, modes)

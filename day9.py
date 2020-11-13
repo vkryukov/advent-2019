@@ -1,4 +1,5 @@
 from intcode import Intcode
+from utils import read_integers
 
 
 def test_relative_mode():
@@ -8,3 +9,7 @@ def test_relative_mode():
     ]
     assert Intcode([1102, 34915192, 34915192, 7, 4, 7, 99, 0]).run() == [1219070632396864]
     assert Intcode([104, 1125899906842624, 99]).run() == [1125899906842624]
+
+
+def test_part1():
+    assert Intcode(read_integers('inputs/day9.txt')).run([1]) == [2682107844]
