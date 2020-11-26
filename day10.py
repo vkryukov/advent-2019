@@ -10,14 +10,14 @@ class Point(namedtuple('Point', 'x y')):
     def __abs__(self):
         return math.sqrt(self.x*self.x + self.y*self.y)
 
-    def __eq__(self, other):
+    def __eq__(self, other: 'Point') -> bool:
         """Equality with a given ACCURACY"""
         return abs(self.x - other.x) < ACCURACY and abs(self.y - other.y) < ACCURACY
 
     def __hash__(self):
         return hash((round(self.x, ACCURATE_DIGITS), round(self.y, ACCURATE_DIGITS)))
 
-    def norm(self):
+    def norm(self) -> 'Point':
         """Return normalized version of self."""
         a = abs(self)
         if a > 0:
@@ -29,7 +29,7 @@ class Point(namedtuple('Point', 'x y')):
         """Return a direction vector from self to other."""
         return Point(other.x - self.x, other.y - self.y)
 
-    def observable(self, points):
+    def observable(self, points: list['Point']):
         """Return number of points observable from the current one (ignoring itself)."""
         return len({self.direction(p).norm() for p in points if self != p})
 
@@ -49,7 +49,7 @@ class Map:
         self.points = points
 
     @staticmethod
-    def from_str(s) -> 'Map':
+    def from_str(s: str) -> 'Map':
         """Generate a map from a string representation."""
         s = s.split()
         w, h = len(s[0]), len(s)
@@ -63,7 +63,7 @@ class Map:
     def __str__(self):
         return self.display(lambda p: '#')
 
-    def display(self, fn):
+    def display(self, fn) -> str:
         """The opposite of from_str."""
         s = [['.' for _ in range(self.w)] for _ in range(self.h)]
         for p in self.points:
