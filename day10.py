@@ -18,6 +18,30 @@ class Point(namedtuple('Point', 'x y')):
     def __hash__(self):
         return hash((round(self.x, ACCURATE_DIGITS), round(self.y, ACCURATE_DIGITS)))
 
+    def __le__(self, other) -> bool:
+        """Comparing vectors by the laser rotation and by the distance to the monitoring station"""
+        if self.x == 0:
+            if other.x == 0:
+                return 0 > self.y >= other.y or 0 < self.y <= other.y
+            else:
+                return self.y < 0 or (self.y > 0 and other.x < 0)
+        elif other.x == 0:
+            return self == other or not(other <= self)
+        elif self.x > 0 > other.x:
+            return True
+        elif self.x < 0 < other.x:
+            return False
+        else:  # self.x and other.x has the same sign
+            self_atan = math.atan(self.y / self.x)
+            other_atan = math.atan(other.y / other.x)
+            if round(self_atan, ACCURATE_DIGITS) == round(other_atan, ACCURATE_DIGITS):
+                return abs(self) <= abs(other)
+            else:
+                return self_atan <= other_atan
+
+    def __lt__(self, other):
+        return self <= other and self != other
+
     def norm(self) -> 'Point':
         """Return normalized version of self."""
         a = abs(self)
@@ -40,6 +64,34 @@ def test_point_equality():
     assert Point(1.0, 2.0) == Point(1, 2)
     assert Point(1.0000001, 1.9999999) == Point(1, 2)
     assert len({Point(1, 2), Point(1.0000001, 1.9999999)}) == 1
+
+
+def test_point_comparison():
+    points = [
+        (0, -1), (0, -2), (0, -3),
+        (1, -3), (1, -2), (2, -3),
+        (1, -1), (2, -2), (3, -3),
+        (3, -2), (2, -1), (3, -1),
+        (1, 0), (2, 0), (3, 0),
+        (3, 1),
+        (1, 1), (2, 2),
+        (2, 3),
+        (0, 1),
+        (0, 3),
+        (-1, 3),
+        (-1, 1),
+        (-2, 2),
+        (-3, 1),
+        (-1, 0), (-2, 0), (-3, 0),
+        (-3, -1), (-2, -1),
+        (-1, -1), (-2, -2),
+        (-2, -3),
+        (-1, -3),
+    ]
+    for i in range(len(points) - 1):
+        x, y = points[i]
+        x1, y1 = points[i+1]
+        assert Point(x, y) < Point(x1, y1)
 
 
 def group_by(lst: typing.Iterable, /, key, sort_key=None) -> dict:
