@@ -1,5 +1,6 @@
 import math
-from collections import namedtuple
+import typing
+from collections import namedtuple, defaultdict
 
 ACCURATE_DIGITS = 4
 ACCURACY = math.pow(0.1, ACCURATE_DIGITS)
@@ -41,11 +42,39 @@ def test_point_equality():
     assert len({Point(1, 2), Point(1.0000001, 1.9999999)}) == 1
 
 
+def group_by(lst: typing.Iterable, /, key, sort_key=None) -> dict:
+    """Groups list elements by the value of KEY, and returns a dictionary mapping key[x] to all elements of lst
+    with given key. SORT_KEY, if set, sorts the array of values."""
+    d = defaultdict(list)
+    for el in lst:
+        d[key(el)].append(el)
+    if sort_key:
+        for el in d:
+            d[el] = sorted(d[el], key=sort_key)
+    return dict(d)
+
+
+def test_group_by():
+    lst = range(10)
+    assert group_by(lst, key=lambda x: x % 2) == {0: [0, 2, 4, 6, 8], 1: [1, 3, 5, 7, 9]}
+    assert group_by(['mother', 'window', 'Mary', 'wash'], key=lambda s: s[0].lower()) == dict(
+        m=['mother', 'Mary'],
+        w=['window', 'wash']
+    )
+    assert group_by(['mother', 'wash', 'Mary', 'window'],
+                    key=lambda s: s[0].lower(),
+                    sort_key=len
+                    ) == dict(
+        m=['Mary', 'mother'],
+        w=['wash', 'window']
+    )
+
+
 class Map:
     """A two-dimensional collection of points."""
     def __init__(self, w: int, h: int, points: list[Point]):
-        self.w = w
-        self.h = h
+        self.w, self.h = w, h
+        self.monitoring = None
         self.points = points
 
     @staticmethod
@@ -76,6 +105,12 @@ class Map:
     def best_observability(self) -> (int, int, int):
         best = max(self.points, key=lambda p: p.observable(self.points))
         return best.x, best.y, best.observable(self.points)
+
+    def set_station(self, x, y):
+        """Set a monitoring station at point (x, y)."""
+        p = Point(x, y)
+        assert p in self.points
+        self.monitoring = p
 
 
 def test_map_from_str():
