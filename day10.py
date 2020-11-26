@@ -19,25 +19,17 @@ class Point(namedtuple('Point', 'x y')):
         return hash((round(self.x, ACCURATE_DIGITS), round(self.y, ACCURATE_DIGITS)))
 
     def __le__(self, other) -> bool:
-        """Comparing vectors by the laser rotation and by the distance to the monitoring station"""
-        if self.x == 0:
-            if other.x == 0:
-                return 0 > self.y >= other.y or 0 < self.y <= other.y
-            else:
-                return self.y < 0 or (self.y > 0 and other.x < 0)
-        elif other.x == 0:
-            return self == other or not(other <= self)
-        elif self.x > 0 > other.x:
+        p1, p2 = self.norm(), other.norm()
+        if p1 == p2:
+            return abs(self) <= abs(other)
+        if p1.x >= 0 and p2.x < 0:
             return True
-        elif self.x < 0 < other.x:
+        elif p1.x <0 and p2.x >= 0:
             return False
-        else:  # self.x and other.x has the same sign
-            self_atan = math.atan(self.y / self.x)
-            other_atan = math.atan(other.y / other.x)
-            if round(self_atan, ACCURATE_DIGITS) == round(other_atan, ACCURATE_DIGITS):
-                return abs(self) <= abs(other)
-            else:
-                return self_atan <= other_atan
+        elif p1.x >= 0 and p2.x >= 0:
+            return p1.y <= p2.y
+        else:
+            return p1.y >= p2.y
 
     def __lt__(self, other):
         return self <= other and self != other
