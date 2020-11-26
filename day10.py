@@ -8,8 +8,9 @@ ACCURACY = math.pow(0.1, ACCURATE_DIGITS)
 
 class Point(namedtuple('Point', 'x y')):
     """A point on two-dimensional grid."""
+
     def __abs__(self):
-        return math.sqrt(self.x*self.x + self.y*self.y)
+        return math.sqrt(self.x * self.x + self.y * self.y)
 
     def __eq__(self, other: 'Point') -> bool:
         """Equality with a given ACCURACY"""
@@ -82,7 +83,7 @@ def test_point_comparison():
     ]
     for i in range(len(points) - 1):
         x, y = points[i]
-        x1, y1 = points[i+1]
+        x1, y1 = points[i + 1]
         assert Point(x, y) < Point(x1, y1)
 
 
@@ -116,6 +117,7 @@ def test_group_by():
 
 class Map:
     """A two-dimensional collection of points."""
+
     def __init__(self, w: int, h: int, points: list[Point]):
         self.w, self.h = w, h
         self.points = points
@@ -311,8 +313,9 @@ def test_vaporization():
         (201, 10, 9),
         (299, 11, 1)
     ]:
-        assert vapor[i-1] == Point(x, y)
+        assert vapor[i - 1] == Point(x, y)
     assert len(vapor) == 299
+
 
 def test_part1():
     assert Map.from_str(open('inputs/day10.txt').read()).best_observability()[2] == 278
