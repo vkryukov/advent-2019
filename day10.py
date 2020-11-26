@@ -106,6 +106,7 @@ def test_observability():
 ....7
 ...87"""
 
+
 def test_best_observability():
     assert Map.from_str("""......#.#.
 #..#.#....
@@ -157,3 +158,7 @@ def test_best_observability():
 .#.#.###########.###
 #.#.#.#####.####.###
 ###.##.####.##.#..##""").best_observability() == (11, 13, 210)
+
+
+def test_part1():
+    assert Map.from_str(open('inputs/day10.txt').read()).best_observability()[2] == 278
