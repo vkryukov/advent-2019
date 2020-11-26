@@ -43,8 +43,8 @@ def test_point_equality():
 
 
 def group_by(lst: typing.Iterable, /, key, sort_key=None) -> dict:
-    """Groups list elements by the value of KEY, and returns a dictionary mapping key[x] to all elements of lst
-    with given key. SORT_KEY, if set, sorts the array of values."""
+    """Groups LST elements by the value of KEY, and returns a dictionary mapping the value of key
+    to all elements of LST with the given key. SORT_KEY, if set, sorts each of these lists."""
     d = defaultdict(list)
     for el in lst:
         d[key(el)].append(el)
