@@ -24,7 +24,7 @@ class Point(namedtuple('Point', 'x y')):
             return abs(self) <= abs(other)
         if p1.x >= 0 and p2.x < 0:
             return True
-        elif p1.x <0 and p2.x >= 0:
+        elif p1.x < 0 and p2.x >= 0:
             return False
         elif p1.x >= 0 and p2.x >= 0:
             return p1.y <= p2.y
@@ -118,8 +118,9 @@ class Map:
     """A two-dimensional collection of points."""
     def __init__(self, w: int, h: int, points: list[Point]):
         self.w, self.h = w, h
-        self.monitoring = None
         self.points = points
+        self.monitoring = None
+        self.vaporization_order = None
 
     @staticmethod
     def from_str(s: str) -> 'Map':
@@ -155,6 +156,18 @@ class Map:
         p = Point(x, y)
         assert p in self.points
         self.monitoring = p
+        self.mark_vaporization()
+
+    def mark_vaporization(self):
+        """Mark everything that's going to be vaporized after the first rotation"""
+        other_points = [p for p in self.points if p != self.monitoring]
+        groups = group_by(other_points,
+                          key=lambda p: self.monitoring.direction(p).norm(),
+                          sort_key=lambda p: self.monitoring.direction(p))
+        for key in groups:
+            for i in range(len(groups[key])):
+                groups[key][i].order = i + 1
+        self.vaporization_order = sorted(other_points, key=lambda p: (p.order, self.monitoring.direction(p)))
 
 
 def test_map_from_str():
@@ -237,5 +250,77 @@ def test_best_observability():
 ###.##.####.##.#..##""").best_observability() == (11, 13, 210)
 
 
+def test_mark_first_9_vaporized():
+    m = Map.from_str(""".#....#####...#..
+##...##.#####..##
+##...#...#.#####.
+..#.....#...###..
+..#.#.....#....##""")
+    m.set_station(8, 3)
+
+    def mark(m, p):
+        if p == m.monitoring:
+            return 'X'
+        else:
+            idx = m.vaporization_order.index(p)
+            if idx < 9:
+                return str(idx + 1)
+            else:
+                return '#'
+
+    assert m.display(lambda p: mark(m, p)) == """.#....###24...#..
+##...##.13#67..9#
+##...#...5.8####.
+..#.....X...###..
+..#.#.....#....##"""
+
+
+def test_vaporization():
+    m = Map.from_str(""".#..##.###...#######
+##.############..##.
+.#.######.########.#
+.###.#######.####.#.
+#####.##.#.##.###.##
+..#####..#.#########
+####################
+#.####....###.#.#.##
+##.#################
+#####.##.###..####..
+..######..##.#######
+####.##.####...##..#
+.#####..#.######.###
+##...#.##########...
+#.##########.#######
+.####.#.###.###.#.##
+....##.##.###..#####
+.#.#.###########.###
+#.#.#.#####.####.###
+###.##.####.##.#..##""")
+    m.set_station(11, 13)
+    vapor = m.vaporization_order
+    for i, x, y in [
+        (1, 11, 12),
+        (2, 12, 1),
+        (3, 12, 2),
+        (10, 12, 8),
+        (20, 16, 0),
+        (50, 16, 9),
+        (100, 10, 16),
+        (199, 9, 6),
+        (200, 8, 2),
+        (201, 10, 9),
+        (299, 11, 1)
+    ]:
+        assert vapor[i-1] == Point(x, y)
+    assert len(vapor) == 299
+
 def test_part1():
     assert Map.from_str(open('inputs/day10.txt').read()).best_observability()[2] == 278
+
+
+def test_part2():
+    m = Map.from_str(open('inputs/day10.txt').read())
+    x, y, most = m.best_observability()
+    assert most == 278
+    m.set_station(x, y)
+    assert m.vaporization_order[199] == Point(14, 17)
