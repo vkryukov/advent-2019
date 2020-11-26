@@ -7,8 +7,6 @@ ACCURACY = math.pow(0.1, ACCURATE_DIGITS)
 
 class Point(namedtuple('Point', 'x y')):
     """A point on two-dimensional grid."""
-    pass
-
     def __abs__(self):
         return math.sqrt(self.x*self.x + self.y*self.y)
 
