@@ -68,8 +68,8 @@ class MoonSystem:
             self.step()
             steps += 1
             for p in range(len(periods)):
-                if periods[p] is None and \
-                        all(self.moons[i].coords[p] == original_moons[i].coords[p] for i in range(len(self.moons))) and \
+                if periods[p] is None and\
+                        all(self.moons[i].coords[p] == original_moons[i].coords[p] for i in range(len(self.moons))) and\
                         all(self.moons[i].speed[p] == original_moons[i].speed[p] for i in range(len(self.moons))):
                     periods[p] = steps
         return math.lcm(*periods)
