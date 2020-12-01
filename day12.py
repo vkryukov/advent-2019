@@ -14,27 +14,27 @@ def sign(x):
 
 class Moon:
     def __init__(self, x, y, z):
-        self.x, self.y, self.z = x, y, z
-        self.vx, self.vy, self.vz = 0, 0, 0
+        self.coords = [x, y, z]
+        self.speed = [0, 0, 0]
 
     def apply_gravity(self, other: 'Moon') -> None:
-        self.vx += sign(other.x - self.x)
-        self.vy += sign(other.y - self.y)
-        self.vz += sign(other.z - self.z)
+        for i in range(len(self.coords)):
+            self.speed[i] += sign(other.coords[i] - self.coords[i])
 
     def apply_velocity(self) -> None:
-        self.x += self.vx
-        self.y += self.vy
-        self.z += self.vz
+        for i in range(len(self.coords)):
+            self.coords[i] += self.speed[i]
 
     def __str__(self):
-        return f"pos=<x={self.x}, y={self.y}, z={self.z}>, vel=<x={self.vx}, y={self.vy}, z={self.vz}>"
+        x, y, z = self.coords
+        vx, vy, vz = self.speed
+        return f"pos=<x={x}, y={y}, z={z}>, vel=<x={vx}, y={vy}, z={vz}>"
 
     def energy(self):
-        return (abs(self.x) + abs(self.y) + abs(self.z)) * (abs(self.vx) + abs(self.vy) + abs(self.vz))
+        return sum(abs(x) for x in self.coords) * sum(abs(s) for s in self.speed)
 
     def copy(self):
-        return Moon(self.x, self.y, self.z)
+        return Moon(*self.coords)
 
 
 class MoonSystem:
@@ -60,33 +60,19 @@ class MoonSystem:
     def energy(self):
         return sum(m.energy() for m in self.moons)
 
-    def print_x(self, steps):
-        for _ in range(steps):
-            for m in self.moons:
-                print(f'({m.x}, {m.vx})', end=' ')
-            print()
-            self.step()
-
     def period(self) -> int:
-        m1, m2, m3, m4 = self.moons
-        o1, o2, o3, o4 = m1.copy(), m2.copy(), m3.copy(), m4.copy()
-        period_x = period_y = period_z = None
+        original_moons = [m.copy() for m in self.moons]
+        periods = [None, None, None]
         steps = 0
-        while period_x is None or period_y is None or period_z is None:
+        while any(x is None for x in periods):
             self.step()
             steps += 1
-            m1, m2, m3, m4 = self.moons
-            if period_x is None and m1.x == o1.x and m1.vx == o1.vx and m2.x == m2.x and m2.vx == o2.vx \
-                and m3.x == o3.x and m3.vx == o3.vx:
-                period_x = steps
-            if period_y is None and m1.y == o1.y and m1.vy == o1.vy and m2.y == m2.y and m2.vy == o2.vy \
-                    and m3.y == o3.y and m3.vy == o3.vy:
-                period_y = steps
-            if period_z is None and m1.z == o1.z and m1.vz == o1.vz and m2.z == m2.z and m2.vz == o2.vz \
-                    and m3.z == o3.z and m3.vz == o3.vz:
-                period_z = steps
-
-        return math.lcm(period_x, period_y,period_z)
+            for p in range(len(periods)):
+                if periods[p] is None and \
+                        all(self.moons[i].coords[p] == original_moons[i].coords[p] for i in range(len(self.moons))) and \
+                        all(self.moons[i].speed[p] == original_moons[i].speed[p] for i in range(len(self.moons))):
+                    periods[p] = steps
+        return math.lcm(*periods)
 
 
 def clean(s): return re.sub('=\s*', '=', s)
