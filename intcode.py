@@ -4,6 +4,8 @@ Implementation of Intcode computer.
 
 from typing import Optional
 
+from utils import read_integers
+
 
 MEMORY_SIZE = 1_000_000
 
@@ -25,7 +27,12 @@ class Intcode:
     def __init__(self, program):
         self._program = program[:]
         self._memory = [0] * MEMORY_SIZE
-        self._input = self.pos = self.relative_base = None
+        self.pos = self.relative_base = None
+        self._input = []
+
+    @staticmethod
+    def from_file(filename):
+        return Intcode(read_integers(filename))
 
     @staticmethod
     def op_and_params(instruction):
