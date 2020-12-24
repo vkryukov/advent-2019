@@ -29,6 +29,8 @@ class Intcode:
         self._memory = [0] * MEMORY_SIZE
         self.pos = self.relative_base = None
         self._input = []
+        self._input_fn = None
+        self.reset()
 
     @staticmethod
     def from_file(filename):
@@ -81,7 +83,8 @@ class Intcode:
                 self.pos += 4
             elif op == Intcode.READ:
                 relative = self.relative_base if modes and modes[0] == 2 else 0
-                self._memory[self._memory[self.pos + 1] + relative] = self._input.pop(0)
+                input_value = self._input_fn() if self._input_fn else self._input.pop(0)
+                self._memory[self._memory[self.pos + 1] + relative] = input_value
                 self.pos += 2
             elif op == Intcode.WRITE:
                 x, = self.values(1, modes)
@@ -127,7 +130,18 @@ class Intcode:
     def append_input(self, x):
         self._input.append(x)
 
+    def extend_input(self, a):
+        self._input.extend(a)
+
     @property
     def memory(self):
         """Return the state of the memory after the run."""
         return self._memory
+
+    @property
+    def input_fn(self):
+        return self._input_fn
+
+    @input_fn.setter
+    def input_fn(self, l):
+        self._input_fn = l
